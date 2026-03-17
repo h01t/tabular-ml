@@ -1,0 +1,78 @@
+# Data files — ignore contents but keep directories
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.csv
+*.parquet
+*.h5
+
+# sessions
+sessions/
+sessions/**
+
+# model
+MODEL.md
+IDEA.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Model artifacts
+artifacts/
+*.pkl
+*.joblib
+*.onnx
+
+# Evidently reports
+reports/
+
+# Docker (none — Dockerfile, .dockerignore, and docker-compose.yml are tracked)
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Linters/formatters
+.ruff_cache/
+
+# CatBoost
+catboost_info/
+
+# Pytest
+.pytest_cache/

@@ -1,0 +1,78 @@
+# Default configuration for the tabular-ml pipeline
+
+data:
+  raw_path: "data/raw/creditcard.csv"
+  processed_dir: "data/processed"
+  target_column: "Class"
+
+split:
+  test_size: 0.2
+  val_size: 0.2  # fraction of the remaining train set
+  random_state: 42
+  stratify: true
+
+features:
+  # Time features
+  time_period_seconds: 86400  # seconds in a day, used for hour extraction
+
+  # Amount features
+  amount_log_transform: true
+  amount_standardize: true
+
+  # V-feature interactions (top correlated pairs with target)
+  interaction_pairs:
+    - ["V14", "V17"]
+    - ["V12", "V14"]
+    - ["V10", "V17"]
+    - ["V4", "V11"]
+
+  # Features to drop after engineering
+  drop_original: ["Time"]  # Time replaced by hour_sin/hour_cos
+
+pipeline:
+  artifact_dir: "artifacts"
+  pipeline_filename: "preprocessing_pipeline.joblib"
+
+training:
+  mlflow:
+    experiment_name: "fraud-detection"
+    tracking_uri: "mlruns"
+
+  # Class imbalance: ratio of negative to positive samples (~577:1)
+  # Used as scale_pos_weight for XGBoost/LightGBM, auto for CatBoost
+  auto_class_weight: true
+
+  optuna:
+    n_trials: 50
+    timeout: 600  # seconds per model
+    direction: "maximize"
+    metric: "pr_auc"  # primary optimization metric
+
+  # Per-model search spaces are defined in tuning.py
+  models:
+    xgboost:
+      fixed_params:
+        objective: "binary:logistic"
+        eval_metric: "aucpr"
+        tree_method: "hist"
+        random_state: 42
+        n_estimators: 1000
+        early_stopping_rounds: 50
+
+    lightgbm:
+      fixed_params:
+        objective: "binary"
+        metric: "average_precision"
+        verbosity: -1
+        random_state: 42
+        n_estimators: 1000
+        early_stopping_rounds: 50
+
+    catboost:
+      fixed_params:
+        loss_function: "Logloss"
+        eval_metric: "PRAUC"
+        random_seed: 42
+        iterations: 1000
+        early_stopping_rounds: 50
+        verbose: 0

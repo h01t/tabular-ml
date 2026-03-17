@@ -1,0 +1,52 @@
+# Git
+.git/
+.gitignore
+
+# Data (not needed in inference container)
+data/
+
+# Notebooks
+notebooks/
+
+# MLflow runs
+mlruns/
+mlartifacts/
+
+# Tests
+tests/
+
+# Task tracking
+tasks/
+
+# IDE
+.idea/
+.vscode/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# CatBoost
+catboost_info/
+
+# OS
+.DS_Store
+
+# Model artifacts we don't need (only keep xgboost + pipeline)
+artifacts/lightgbm_model.joblib
+artifacts/catboost_model.joblib
+artifacts/stacking_ensemble.joblib
+artifacts/blending_ensemble.joblib
+artifacts/*.png
+artifacts/*.json
+
+# Docs
+*.md
+!README.md
