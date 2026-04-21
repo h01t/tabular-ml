@@ -78,7 +78,12 @@ def run_full_training(config_path: str = "configs/default.yaml") -> list[dict]:
         # Train final model with best params
         print(f"\n  Training final {display_name} with best params...")
         best_params = tuning_result["best_params"]
-        model = build_model(model_type, best_params)
+        model = build_model(
+            model_type,
+            best_params,
+            config=config,
+            backend=tuning_result["backend"],
+        )
 
         result = train_and_evaluate(
             model=model,

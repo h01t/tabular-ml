@@ -7,7 +7,6 @@ import joblib
 import mlflow
 import numpy as np
 import pandas as pd
-import yaml
 
 from tabular_ml.models.evaluation import (
     compute_metrics,
@@ -15,12 +14,6 @@ from tabular_ml.models.evaluation import (
     plot_confusion_matrix,
     plot_precision_recall_curve,
 )
-
-
-def load_config(config_path: str | Path = "configs/default.yaml") -> dict:
-    """Load YAML configuration."""
-    with open(config_path) as f:
-        return yaml.safe_load(f)
 
 
 def setup_mlflow(config: dict) -> str:

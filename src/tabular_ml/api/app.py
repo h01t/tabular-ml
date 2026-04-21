@@ -1,7 +1,6 @@
 """FastAPI inference service for credit card fraud detection."""
 
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 import joblib
 import numpy as np
@@ -15,6 +14,7 @@ from tabular_ml.api.schemas import (
     PredictionResponse,
     TransactionFeatures,
 )
+from tabular_ml.config import get_serving_settings, load_config
 
 # ── Feature column order (must match training) ──────────────────────────
 FEATURE_COLUMNS = [
@@ -24,17 +24,19 @@ FEATURE_COLUMNS = [
 ]
 
 # ── Global state populated at startup ────────────────────────────────────
+_serving_settings = get_serving_settings(load_config())
+
 _state: dict = {
     "pipeline": None,
     "model": None,
-    "model_name": "XGBoost",
-    "model_version": "0.1.0",
-    "threshold": 0.893,  # optimal threshold from Phase 3 training
+    "model_name": _serving_settings["model_name"],
+    "model_version": _serving_settings["model_version"],
+    "threshold": _serving_settings["threshold"],
 }
 
 # ── Artifact paths (configurable via env in production) ──────────────────
-PIPELINE_PATH = Path("artifacts/preprocessing_pipeline.joblib")
-MODEL_PATH = Path("artifacts/xgboost_model.joblib")
+PIPELINE_PATH = _serving_settings["pipeline_path"]
+MODEL_PATH = _serving_settings["model_path"]
 
 
 @asynccontextmanager
@@ -59,10 +61,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Fraud Detection API",
-    description="Credit card fraud detection inference service. "
-    "Accepts raw transaction features and returns fraud probability.",
-    version="0.1.0",
+    title=_serving_settings["api_title"],
+    description=_serving_settings["api_description"],
+    version=_serving_settings["api_version"],
     lifespan=lifespan,
 )
 

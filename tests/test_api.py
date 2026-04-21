@@ -1,17 +1,17 @@
 """Tests for the FastAPI inference service."""
 
-import joblib
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from tabular_ml.api.app import FEATURE_COLUMNS, MODEL_PATH, PIPELINE_PATH, _state, app
+from tests.conftest import HeuristicFraudModel, IdentityPipeline
 
 
 @pytest.fixture(autouse=True)
 def load_model_state():
-    """Load model artifacts into app state before tests, clean up after."""
-    _state["pipeline"] = joblib.load(PIPELINE_PATH)
-    _state["model"] = joblib.load(MODEL_PATH)
+    """Load lightweight test doubles into app state before tests."""
+    _state["pipeline"] = IdentityPipeline()
+    _state["model"] = HeuristicFraudModel()
     yield
     _state["pipeline"] = None
     _state["model"] = None
@@ -208,3 +208,10 @@ async def test_predict_response_consistency(transport):
 
     assert single["fraud_probability"] == batch_first["fraud_probability"]
     assert single["is_fraud"] == batch_first["is_fraud"]
+
+
+def test_artifact_paths_are_configured():
+    """Artifact paths should come from central serving config."""
+    assert PIPELINE_PATH.name == "preprocessing_pipeline.joblib"
+    assert MODEL_PATH.name == "xgboost_model.joblib"
+    assert FEATURE_COLUMNS[0] == "Time"

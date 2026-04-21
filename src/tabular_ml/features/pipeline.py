@@ -4,17 +4,11 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-import yaml
 from sklearn.pipeline import Pipeline
 
+from tabular_ml.config import load_config
 from tabular_ml.data.loader import load_data, split_data
 from tabular_ml.features.engineering import build_feature_pipeline
-
-
-def load_config(config_path: str | Path = "configs/default.yaml") -> dict:
-    """Load YAML configuration file."""
-    with open(config_path) as f:
-        return yaml.safe_load(f)
 
 
 def fit_and_transform(

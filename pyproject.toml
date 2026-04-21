@@ -5,8 +5,75 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tabular-ml"
 version = "0.1.0"
-description = "Production-grade ML pipeline for credit card fraud detection"
+description = "End-to-end tabular ML pipeline for credit card fraud detection with feature engineering, gradient boosting, FastAPI serving, MLflow tracking, and drift monitoring."
+readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.11"
+authors = [
+    {name = "h01t"},
+]
+maintainers = [
+    {name = "h01t"},
+]
+keywords = [
+    "machine-learning",
+    "tabular-data",
+    "fraud-detection",
+    "mlops",
+    "fastapi",
+    "mlflow",
+    "xgboost",
+    "lightgbm",
+    "catboost",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "catboost>=1.2.0",
+    "evidently>=0.4.0",
+    "fastapi>=0.104.0",
+    "feature-engine>=1.6.0",
+    "imbalanced-learn>=0.11.0",
+    "joblib>=1.3.0",
+    "lightgbm>=4.0.0",
+    "matplotlib>=3.8.0",
+    "mlflow>=2.9.0",
+    "numpy>=1.24.0",
+    "optuna>=3.4.0",
+    "pandas>=2.0.0",
+    "pydantic>=2.5.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.0",
+    "scikit-learn>=1.3.0",
+    "seaborn>=0.13.0",
+    "uvicorn[standard]>=0.24.0",
+    "xgboost>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.25.0",
+    "ipykernel>=6.27.0",
+    "jupyter>=1.0.0",
+    "pytest>=7.4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/h01t/tabular-ml"
+Repository = "https://github.com/h01t/tabular-ml"
+Issues = "https://github.com/h01t/tabular-ml/issues"
+Documentation = "https://github.com/h01t/tabular-ml/blob/main/docs/project-overview.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -14,3 +81,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+markers = [
+    "integration: requires optional native ML dependencies or local runtime artifacts",
+]

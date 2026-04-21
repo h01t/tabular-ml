@@ -1,19 +1,53 @@
 """Hyperparameter tuning with Optuna for XGBoost, LightGBM, and CatBoost."""
 
+from importlib import import_module
 from typing import Any
 
 import numpy as np
 import optuna
 import pandas as pd
-from catboost import CatBoostClassifier
-from lightgbm import LGBMClassifier
 from sklearn.metrics import average_precision_score
-from xgboost import XGBClassifier
 
+from tabular_ml.config import load_config, resolve_training_backend
 from tabular_ml.models.trainer import compute_class_weight
 
 # Suppress Optuna info logging (only show warnings+)
 optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+
+class OptionalModelDependencyError(ImportError):
+    """Raised when an optional native ML dependency cannot be imported."""
+
+
+_MODEL_IMPORTS = {
+    "xgboost": ("xgboost", "XGBClassifier"),
+    "lightgbm": ("lightgbm", "LGBMClassifier"),
+    "catboost": ("catboost", "CatBoostClassifier"),
+}
+
+
+def _import_model_class(model_type: str):
+    """Import a model class only when it is actually required."""
+    if model_type not in _MODEL_IMPORTS:
+        raise ValueError(
+            f"Unknown model type: {model_type}. Choose from {list(_MODEL_IMPORTS)}"
+        )
+
+    module_name, class_name = _MODEL_IMPORTS[model_type]
+    try:
+        module = import_module(module_name)
+    except Exception as exc:  # pragma: no cover - exercised in integration envs
+        hint = ""
+        if module_name in {"xgboost", "lightgbm"}:
+            hint = (
+                " On macOS this often means OpenMP is missing; install `libomp` "
+                "and retry."
+            )
+        raise OptionalModelDependencyError(
+            f"Could not import optional dependency {module_name!r}.{hint}"
+        ) from exc
+
+    return getattr(module, class_name)
 
 
 def _xgboost_objective(
@@ -26,6 +60,7 @@ def _xgboost_objective(
     class_weight: float,
 ) -> float:
     """Optuna objective for XGBoost hyperparameter search."""
+    XGBClassifier = _import_model_class("xgboost")
     params = {
         **fixed_params,
         "scale_pos_weight": class_weight,
@@ -60,6 +95,7 @@ def _lightgbm_objective(
     class_weight: float,
 ) -> float:
     """Optuna objective for LightGBM hyperparameter search."""
+    LGBMClassifier = _import_model_class("lightgbm")
     params = {
         **fixed_params,
         "scale_pos_weight": class_weight,
@@ -94,6 +130,7 @@ def _catboost_objective(
     class_weight: float,
 ) -> float:
     """Optuna objective for CatBoost hyperparameter search."""
+    CatBoostClassifier = _import_model_class("catboost")
     params = {
         **fixed_params,
         "auto_class_weights": "Balanced",
@@ -148,6 +185,8 @@ def tune_model(
     optuna_cfg = training_cfg["optuna"]
     model_cfg = training_cfg["models"][model_type]
     fixed_params = dict(model_cfg["fixed_params"])
+    backend = resolve_training_backend(model_type, config)
+    fixed_params.update(backend.params)
 
     class_weight = compute_class_weight(y_train)
 
@@ -184,33 +223,40 @@ def tune_model(
 
     print(f"\n  {model_type.upper()} — Best PR-AUC: {study.best_value:.4f}")
     print(f"  Best params: {study.best_params}")
+    print(
+        "  Hardware backend: "
+        f"requested={backend.requested_preference}, "
+        f"resolved={backend.resolved_device} ({backend.reason})"
+    )
 
     return {
         "best_params": best_params,
         "best_value": study.best_value,
+        "backend": backend.as_dict(),
         "study": study,
     }
 
 
-def build_model(model_type: str, params: dict) -> Any:
+def build_model(
+    model_type: str,
+    params: dict,
+    config: dict | None = None,
+    backend: dict[str, Any] | None = None,
+) -> Any:
     """Instantiate a model with the given parameters.
 
     Args:
         model_type: One of "xgboost", "lightgbm", "catboost".
         params: Full parameter dict (fixed + tuned).
+        config: Optional project config for hardware resolution.
+        backend: Optional pre-resolved backend info from ``tune_model``.
 
     Returns:
         Instantiated model (not yet fitted).
     """
-    builders = {
-        "xgboost": XGBClassifier,
-        "lightgbm": LGBMClassifier,
-        "catboost": CatBoostClassifier,
-    }
+    cfg = config or load_config()
+    resolution = backend or resolve_training_backend(model_type, cfg).as_dict()
+    init_params = {**resolution["params"], **params}
 
-    if model_type not in builders:
-        raise ValueError(
-            f"Unknown model type: {model_type}. Choose from {list(builders.keys())}"
-        )
-
-    return builders[model_type](**params)
+    model_class = _import_model_class(model_type)
+    return model_class(**init_params)

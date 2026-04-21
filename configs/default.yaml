@@ -38,6 +38,32 @@ training:
     experiment_name: "fraud-detection"
     tracking_uri: "mlruns"
 
+  hardware:
+    # Device preference for model training:
+    # - auto: safe default, currently resolves to CPU
+    # - cpu: force CPU training
+    # - gpu: request the library-specific GPU backend
+    #
+    # Note: Apple Silicon (M1/M2/M3) currently resolves to CPU because the
+    # active tree-model stack does not expose a native MPS backend.
+    preference: "auto"
+    auto_default_device: "cpu"
+    model_parameters:
+      xgboost:
+        cpu: {}
+        gpu:
+          device: "cuda"
+      lightgbm:
+        cpu:
+          device_type: "cpu"
+        gpu:
+          device_type: "gpu"
+      catboost:
+        cpu:
+          task_type: "CPU"
+        gpu:
+          task_type: "GPU"
+
   # Class imbalance: ratio of negative to positive samples (~577:1)
   # Used as scale_pos_weight for XGBoost/LightGBM, auto for CatBoost
   auto_class_weight: true
@@ -76,3 +102,16 @@ training:
         iterations: 1000
         early_stopping_rounds: 50
         verbose: 0
+
+serving:
+  api:
+    title: "Fraud Detection API"
+    description: "Credit card fraud detection inference service. Accepts raw transaction features and returns fraud probability."
+    version: "0.1.0"
+  artifacts:
+    pipeline_path: "artifacts/preprocessing_pipeline.joblib"
+    model_path: "artifacts/xgboost_model.joblib"
+  model:
+    name: "XGBoost"
+    version: "0.1.0"
+    threshold: 0.893

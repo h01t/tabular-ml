@@ -3,8 +3,16 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.linear_model import LogisticRegression
-from xgboost import XGBClassifier
+
+try:
+    from xgboost import XGBClassifier
+except Exception as exc:  # pragma: no cover - integration-only path
+    XGBClassifier = None
+    pytestmark = pytest.mark.skip(
+        reason=f"xgboost unavailable in this environment: {exc}"
+    )
+else:
+    pytestmark = pytest.mark.integration
 
 from tabular_ml.models.ensemble import BlendingEnsemble, StackingEnsemble
 

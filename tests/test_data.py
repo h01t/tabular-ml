@@ -24,13 +24,14 @@ def sample_df():
 
 
 class TestLoadData:
-    def test_load_real_dataset(self):
-        """Load the actual dataset and verify shape."""
-        df = load_data("data/raw/creditcard.csv")
-        assert df.shape == (284807, 31)
-        assert "Class" in df.columns
-        assert "Time" in df.columns
-        assert "Amount" in df.columns
+    def test_load_csv_from_path(self, sample_df, tmp_path):
+        """Load a CSV from disk and preserve its columns and row count."""
+        csv_path = tmp_path / "creditcard.csv"
+        sample_df.to_csv(csv_path, index=False)
+
+        df = load_data(csv_path)
+        assert df.shape == sample_df.shape
+        assert list(df.columns) == list(sample_df.columns)
 
     def test_load_missing_file_raises(self):
         """Missing file raises FileNotFoundError."""
