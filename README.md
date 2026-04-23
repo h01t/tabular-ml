@@ -104,6 +104,17 @@ curl http://localhost:8000/health
 python scripts/monitoring_demo.py
 ```
 
+### Optional: run API and MLflow with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+Services:
+
+- API docs: `http://127.0.0.1:8000/docs`
+- MLflow UI: `http://127.0.0.1:5001`
+
 ## Training Hardware and Apple Silicon Notes
 
 The repository now uses a documented backend preference in [`configs/default.yaml`](configs/default.yaml):

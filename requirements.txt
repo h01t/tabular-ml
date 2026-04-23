@@ -12,7 +12,7 @@ catboost>=1.2.0
 optuna>=3.4.0
 
 # Experiment tracking
-mlflow>=2.9.0
+mlflow==3.10.1
 
 # API
 fastapi>=0.104.0

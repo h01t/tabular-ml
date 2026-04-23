@@ -18,17 +18,18 @@ services:
 
   # ── MLflow Tracking Server ─────────────────────────────────────────────
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.19.0
+    image: ghcr.io/mlflow/mlflow:v3.10.1
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - mlflow-data:/mlflow
     command: >
       mlflow server
       --host 0.0.0.0
       --port 5000
-      --backend-store-uri sqlite:///mlflow/mlflow.db
-      --default-artifact-root /mlflow/artifacts
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --serve-artifacts
+      --artifacts-destination /mlflow/artifacts
     restart: unless-stopped
 
 volumes:

@@ -36,7 +36,7 @@ pipeline:
 training:
   mlflow:
     experiment_name: "fraud-detection"
-    tracking_uri: "mlruns"
+    tracking_uri: "http://127.0.0.1:5001"
 
   hardware:
     # Device preference for model training:
